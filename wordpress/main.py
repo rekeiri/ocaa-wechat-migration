@@ -1,27 +1,43 @@
-from config import client_id, client_secret
-from oauthlib.oauth2 import BackendApplicationClient
-from requests_oauthlib import OAuth2Session
-from requests.auth import HTTPBasicAuth
-
-import os
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+from auth import get_oauth_session
 
 
-
-authorization_base_url = "http://www.ohiocaa.org/oauth/authorize/"
-token_url = "http://www.ohiocaa.org/oauth/token/"
-redirect_uri = "http://www.ohiocaa.org/python-redirect/"
-
-
-#authentication
-oauth = OAuth2Session(client_id)
-authorization_url, state = oauth.authorization_url(authorization_base_url)
-print("Please go to %s and authorize access." % authorization_url)
-authorization_response = input("Enter the full callback URL")
-print()
-
-#fetching access token
-token = oauth.fetch_token(token_url,
-                            authorization_response = authorization_response,
-                            client_secret = client_secret)
+def is_access_token_valid():
     
+
+
+#if token is not valid, retrieve new token
+if access_token_valid:
+
+else:
+    session = get_oauth_session()
+
+session = get_oauth_session()
+
+def get_posts(session):
+    get_url = "https://ohiocaa.org/wp-json/wp/v2/posts"
+    r = session.get(get_url)
+    print(r)
+    print(r.text)
+    print(r.headers)
+    print("DONE")
+    print()
+    print("-----------------------")
+
+
+
+def create_post(session, date, status, title, content, category):
+    post_url = "https://ohiocaa.org/wp-json/wp/v2/posts"
+    data = {"date": date, "status": status, "title": title, "content": content, "category": category}
+    r = session.post(post_url, data = data)
+    print(r)
+    print(r.text)
+    print(r.headers)
+    print("DONE")
+    print()
+    print("-----------------------")
+
+
+
+create_post(oauth, "2020-5-28", "published", "test", "this is a test post", "APAPA Ohio Posts")
+
+get_posts(oauth)
