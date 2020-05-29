@@ -24,7 +24,7 @@ def get_oauth_session():
     token = oauth.fetch_token(token_url,
                                 authorization_response = authorization_response,
                                 client_secret = client_secret)
-                                
+
     write_token_to_config(token)
 
     return oauth
@@ -35,18 +35,20 @@ def write_token_to_config(token):
     expire_time = str(token["expires_at"])
     changed_token = False
     changed_time = False
-    for line in fileinput.input("config.py", inplace = True):
+    dirname = os.path.dirname(__file__)
+    filename = os.path.join(dirname, "config.py")
+    for line in fileinput.input(filename, inplace = True):
         if line.strip().startswith("access_token ="):
-            line = "access_token = "+token_str
+            line = "access_token = "+ "\"" + token_str + "\""
             changed_token = True
         if line.strip().startswith("expires_at ="):
-            line = "expires_at = "+expire_time
+            line = "expires_at = "+ expire_time
             changed_time = True
         sys.stdout.write(line)
     if not changed_token or not changed_time: #one of the fields didn't exist already in file
-        f = open("config.py", "a")
+        f = open(filename, "a")
         if not changed_token:
-            f.write("access_token = "+ token_str)
+            f.write("\naccess_token = "+ "\"" + token_str+"\"")
         if not changed_time:
-            f.write("expires_at = "+expire_time)
+            f.write("\nexpires_at = " + expire_time)
         f.close()
