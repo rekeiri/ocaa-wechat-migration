@@ -75,24 +75,15 @@ def get_posts(session, access_token):
 def create_post(session, access_token, date, status, title, content, categories):
     url = "https://ohiocaa.org/wp-json/wp/v2/posts"
     url += "?access_token="+access_token 
-    print(categories[0])
     data = {"date": date, "status": status, "title": title, "content": content, "categories": categories}
     r = session.post(url, data = data)
-    print(r)
-    print("printing text")
-    print(r.text)
-    print("DONE")
-    print()
-    print("-----------------------")
+    print("Done Creating Post")
+
+def create_date(year, month, day):
+    return ""
 
 
 categories = get_categories(session, access_token)
-'''
-print(len(categories))
-for category in categories:
-    print()
-    print(category)
-'''
 
 #getting category id
 category_id = 0

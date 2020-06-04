@@ -3,6 +3,8 @@ import json
 import time
 import html
 
+from config import key, biz, uin
+
 def parse(index, biz, uin, key):
 
     # url prefix
@@ -35,11 +37,12 @@ def parse(index, biz, uin, key):
         'x5': '0',
     }
 
-    # send resquest get response
+    # send request get response
     response = requests.get(url, headers=headers, params=param, proxies=proxies)
+    print(response.status_code)
     response_dict = response.json()
 
-    # print(reponse_dict)
+    print(response_dict)
     next_offset = response_dict['next_offset']
     can_msg_continue = response_dict['can_msg_continue']
 
@@ -64,14 +67,14 @@ def parse(index, biz, uin, key):
             print(url)
 
             res = requests.get(url, headers=headers, proxies=proxies)
-            with open("C:\\Users\\Eric Fu\\workspace\\ocaa-wechat-migration\\wechat\\articles\\" + title + ".html", "wb+") as f:
+            with open("C:\\Users\\Eric Fu\\workspace\\ocaa-wechat-migration\\wechat\\articles" + title + ".html", "wb+") as f:
                 f.write(res.content)
 
             print(title + date + 'success')
 
         except Exception as e:
             print(e)
-            print("不是图文消息")
+            print("likely not an article")
 
     if can_msg_continue == 1:
         return True
@@ -80,9 +83,6 @@ def parse(index, biz, uin, key):
         return False
 
 
-uin = "NjIzNjc5OTU4"
-key = "06519858b69686397976c10bb02f3b5320f2d3d99705685a78d42129781c4ff891fac3f710eb4730a4bc05f9fb0ef95f0892e07ad6d741a95b637943619266b7d836fef552c4b06c311955ffc6aa21a7"
-biz = "MzU5NTk2NjgzMg=="
 index = 1
 
 while(parse(index, biz, uin, key)):
