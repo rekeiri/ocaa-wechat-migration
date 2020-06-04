@@ -41,14 +41,14 @@ def write_token_to_config(token):
         if line.strip().startswith("access_token ="):
             line = "access_token = "+ "\"" + token_str + "\""
             changed_token = True
-        if line.strip().startswith("expires_at ="):
+        elif line.strip().startswith("expires_at ="):
             line = "expires_at = "+ expire_time
             changed_time = True
         sys.stdout.write(line)
     if not changed_token or not changed_time: #one of the fields didn't exist already in file
         f = open(filename, "a")
         if not changed_token:
-            f.write("\naccess_token = "+ "\"" + token_str+"\"")
+            f.write("access_token = "+ "\"" + token_str+"\"\n")
         if not changed_time:
-            f.write("\nexpires_at = " + expire_time)
+            f.write("\nexpires_at = " + expire_time+"\n")
         f.close()
