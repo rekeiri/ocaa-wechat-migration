@@ -6,7 +6,7 @@ WeChat articles can be accessed through the WeChat app or through the desktop ap
 
 The other way is obtained through analyzing the web traffic when viewing the Official Account through the desktop app. Using Fiddler, we can see what kind of request is being sent and the necessary parameters. First. install Fiddler, and then make sure to enable HTTPS decryption. Then click on the link to the Official Account. You should see the interface in the picture below.
 
-![WeChat Official Account Screenshot](pic1.png?raw=true "Official Account Screenshot")
+![WeChat Official Account Screenshot](pic1.png?raw=true "Official Account Screenshot" = 380x480)
 
 Now, let us look at the request through Fiddler.  Looking at the order of requests and the URLs, it becomes quite apparent that the "profile_ext" URL is likely the one that grabs most of the data regarding the articles. 
 
@@ -14,7 +14,7 @@ Now, let us look at the request through Fiddler.  Looking at the order of reques
 
 When we scroll down and the application gathers another few articles, it is clear that this definitely is the request that gathers the articles. 
 
-![Second Fiddler Request Screenshot](pic3?raw=true "Second Fiddler Request for Articles")
+![Second Fiddler Request Screenshot](pic3.png?raw=true "Second Fiddler Request for Articles")
 
 After some testing with the different parameters, it became apparent that the necessary unique parameters include __biz, uin, and key. The can_message_continue value returned in the JSON is also important, as it lets us know if there are any more articles to be obtained. And finally, the offset lets us control which articles we obtain (it is the offset of the number of the article starting from the most recent), and the count lets us control how many articles we retrieve. 
 
