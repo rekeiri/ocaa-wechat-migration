@@ -18,6 +18,8 @@ When we scroll down and the application gathers another few articles, it is clea
 
 After some testing with the different parameters, it became apparent that the necessary unique parameters include __biz, uin, and key. The can_message_continue value returned in the JSON is also important, as it lets us know if there are any more articles to be obtained. And finally, the offset lets us control which articles we obtain (it is the offset of the number of the article starting from the most recent), and the count lets us control how many articles we retrieve. 
 
+Sometimes while testing, we get a KeyError while trying to obtain next_offset from the response. In the respose body, there is an attribute "errmsg": "no session", so obviously the incorrect response is being returned. This is due to the key having expired/changed. Requests at different times contain different key values. There doesn't appear to be a way to programmatically retrieve an updated key-the initial request to WeChat servers already contains this key. It is likely that it is algorithmically created through some combination of the userid (uin), time, and maybe some other account specific parameters. So the only way is to go back through fiddler and get a new key.
+
 After we successfully request for all of the articles and download them as HTML files, it seems quite easy to upload all of the content straight into WordPress. However, there are several issues.
 
 The first issue is that when you open up the html file in a browser, none of the images load. They will load, if you go to the original WeChat link in a browser. The cause is that each img has an attribute data-src, so in order to view/get the images, we need to change the attribute to src.
