@@ -1,10 +1,16 @@
-from wechat.parse import Parser
-from wechat.config import uin as w_uin, key as w_key, biz as w_biz
 import os
 import re
+from wechat.parser import Parser
+from wechat.config import uin as w_uin, key as w_key, biz as w_biz
+from wordpress.wp_auth_library import WPAuthLibrary
+try:
+    from wordpress.config import access_token, expires_at
+except:
+    access_token, expires_at = None, None
 
+
+#wechat code
 parser = Parser(w_biz, w_uin, w_key)
-
 
 #grab all wechat articles, download them to folder
 #parser.download_all_html
@@ -35,3 +41,20 @@ for article in articles:
     f.write(article_string)
     f.close()
 
+
+
+#WordPress code
+wp_auth_lib = WPAuthLibrary(access_token, expires_at)
+
+category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
+my_date = wp_auth_lib.create_date(2020, 5, 28, 0, 0, 0) # should be "2020-05-28T00:00:00"
+print(my_date)
+#wp_auth_lib.create_post(my_date , "publish", "test", "this is a test post", [category_id])
+
+'''
+r = wp_auth_lib.get_posts()
+print(len(r))
+for post in r:
+    print()
+    print(post)
+'''
