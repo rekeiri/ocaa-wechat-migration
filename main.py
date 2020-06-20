@@ -1,29 +1,37 @@
-from wechat.parse import parse
+from wechat.parse import Parser
 from wechat.config import uin as w_uin, key as w_key, biz as w_biz
 import os
+import re
+
+parser = Parser(w_biz, w_uin, w_key)
+
 
 #grab all wechat articles, download them to folder
-'''
-index = 1
-while(parse(index, w_biz, w_uin, w_key)):
-    index += 1
-'''
+#parser.download_all_html
 
-#for each article, grab all the images and upload them to wordpress
-#change the article to reflect the new image sources
-#change the "data-src" tag to "src" so the img is properly displayed
-#sometimes there are links to recent articles toward bottom of page, so we would need to relace those links with the new links of posts on wordpress
-#cant really remove any of the javascript, because some is used to display the actual page content
-#need to test if pasting the entirety of the html files works in wordpress
-#would like a database to correlate new article links with old links for easy replacement
-#maybe also store new img links with old img links?
+#grab article(s) names
+file_path = os.path.dirname(__file__)
+dirname = os.path.join(file_path, ".\\wechat\\articles")
+articles = [f for f in os.listdir(dirname) if os.path.isfile(os.path.join(dirname, f))]
 
-#so html has a lot of obfuscated js in there. What we want is really just result of copy the article and pasting into word or something (but with the imgs working)
-#how can we do that-copy and pasting imgs work if we just change the data-src to src
+#for test, only take first article
+articles = articles[0:1]
 
-dirname = os.path.dirname(__file__)
-dirname = os.path.join(dirname, ".\\wechat\\articles")
-#print(dirname)
-#print(os.listdir(dirname))
-files = [f for f in os.listdir(dirname) if os.path.isfile(os.path.join(dirname, f))]
-print(files)
+for article in articles:
+    article_path = os.path.join(dirname, article)
+
+    #get article string
+    f = open(article_path, "r", encoding = "utf-8")
+    article_string = f.read()
+    f.close()
+
+    #start scraping the text/images
+    article_string = parser.get_html_and_images(article_string)
+
+
+    #write new formatted file
+    print("writing file")
+    f = open(re.sub("articles", "modified_articles", article_path), "w", encoding = "utf-8")
+    f.write(article_string)
+    f.close()
+

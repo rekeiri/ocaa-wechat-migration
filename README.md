@@ -22,13 +22,21 @@ Sometimes while testing, we get a KeyError while trying to obtain next_offset fr
 
 After we successfully request for all of the articles and download them as HTML files, it seems quite easy to upload all of the content straight into WordPress. However, there are several issues.
 
-The first issue is that when you open up the html file in a browser, none of the images load. They will load, if you go to the original WeChat link in a browser. The cause is that each img has an attribute data-src, so in order to view/get the images, we need to change the attribute to src.
+1. When you open up the html file in a browser, none of the images load. They will load, if you go to the original WeChat link in a browser. The cause is that each img has an attribute data-src, so in order to view/get the images, we need to change the attribute to src, since we won't be including the javascript to process data-src.
 
-The second issue is that we need to back up the images. We cannot just directly upload the article, since all the images are still hosted on WeChat servers. So, we need to grab all the images, upload them to the WordPress server, and then replace the image URLs with the new URLs from the WordPress server.
+2. How do we download the video?
 
-The third issue is that there is a lot of obfuscated JavaScript in the HTML file. This will slow down the server significantly. Also, if you try to include the JS in a post, it will change the formatting of the page in WordPress. Removing all the script tags from the file cause the article to not display properly. So we need to figure out how to get only the text and images from the file.
+3. we need to back up the images. We cannot just directly upload the article, since all the images are still hosted on WeChat servers. So, we need to grab all the images, upload them to the WordPress server, and then replace the image URLs with the new URLs from the WordPress server.
 
-Finally, one other issue is that there are "recent articles" linked at the bottom of the article. If we decide to include this section in the backup, then it is necessary to replace these links with the new URLs to the articles on the WordPress server.
+4. There is a lot of obfuscated JavaScript in the HTML file. This will slow down the server significantly. Also, if you try to include the JS in a post, it will change the formatting of the page in WordPress. Removing all the script tags from the file cause the article to not display properly. So we need to figure out how to get only the text and images from the file.
+
+5. (Optional) There are "recent articles" linked at the bottom of the article. If we decide to include this section in the backup, then it is necessary to replace these links with the new URLs to the articles on the WordPress server.
+
+To solve issues 1 and 4, we can use html2text and regex to get the necessary information. 
+
+In terms of issue 2, there is an <iframe> in the page where they download their own video player. The video player has a src. If you ...
+
+
 
 ## Part 2: Uploading to WordPress
 
