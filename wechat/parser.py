@@ -123,7 +123,7 @@ class Parser():
             f.write("\nkey = "+ "\"" + self.key + "\"\n")
             f.close()
 
-    def get_html_and_images(self, article_string):
+    def get_article_html_and_images(self, article_string):
         #replace wechat 'data-src' attributes to fix images
         article_string = re.sub("data-src=", "src=", article_string)
 
@@ -134,6 +134,17 @@ class Parser():
         article_string = re.sub("\(javascript:.*[\r?\n|\r]", "", article_string)
         return article_string
 
+        #get the urls from already cleaned string
     def get_image_urls(self, article_string):
-        pass
+        #some assumptions go into how the string is formatted
+        pattern = re.compile("src='.*[\r?\n|\r]*\/>")
+        links = re.findall(pattern, article_string)
+        for i in range(len(links)):
+            #there should only be two
+            quotes = [i for i, letter in enumerate(links[i]) if letter == "'"]
+            links[i] = links[i][quotes[0]+1:quotes[1]]
+            print(links[i] == "")
+        links = list(filter(lambda x: not x.strip() == '', links)) #idk why this doesn work
+        return links
+
 

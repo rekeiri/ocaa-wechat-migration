@@ -1,4 +1,4 @@
-from config import client_id, client_secret
+from .config import client_id, client_secret
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 from requests.auth import HTTPBasicAuth

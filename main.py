@@ -32,8 +32,8 @@ for article in articles:
     f.close()
 
     #start scraping the text/images
-    article_string = parser.get_html_and_images(article_string)
-
+    article_string = parser.get_article_html_and_images(article_string)
+    print(parser.get_image_urls(article_string))
 
     #write new formatted file
     print("writing file")
@@ -42,7 +42,7 @@ for article in articles:
     f.close()
 
 
-
+'''
 #WordPress code
 wp_auth_lib = WPAuthLibrary(access_token, expires_at)
 
@@ -50,6 +50,8 @@ category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
 my_date = wp_auth_lib.create_date(2020, 5, 28, 0, 0, 0) # should be "2020-05-28T00:00:00"
 print(my_date)
 #wp_auth_lib.create_post(my_date , "publish", "test", "this is a test post", [category_id])
+
+'''
 
 '''
 r = wp_auth_lib.get_posts()

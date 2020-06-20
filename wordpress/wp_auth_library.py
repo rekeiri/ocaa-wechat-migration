@@ -1,4 +1,4 @@
-from auth import get_oauth_session
+from .auth import get_oauth_session
 import time
 import os
 import requests
