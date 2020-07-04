@@ -1,3 +1,6 @@
 /wechat/config.py
 /wordpress/config.py
 __pycache__
+/img
+/wechat/articles
+/wechat/modified_articles

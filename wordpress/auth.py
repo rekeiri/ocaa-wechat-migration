@@ -37,6 +37,7 @@ def write_token_to_config(token):
     changed_time = False
     dirname = os.path.dirname(__file__)
     filename = os.path.join(dirname, "config.py")
+    #look to fix this later, maybe use different method or iterate thorugh lines twice. Is often buggy.
     for line in fileinput.input(filename, inplace = True):
         if line.strip().startswith("access_token ="):
             line = "access_token = "+ "\"" + token_str + "\""

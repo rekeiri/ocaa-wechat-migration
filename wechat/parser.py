@@ -123,6 +123,14 @@ class Parser():
             f.write("\nkey = "+ "\"" + self.key + "\"\n")
             f.close()
 
+    #a helper method for get_article_html_and_images
+    def find_nth(self, string, substring, n):
+        start = string.find(substring)
+        while start >= 0 and n > 1:
+            start = string.find(substring, start+len(substring))
+            n -= 1
+        return start
+
     def get_article_html_and_images(self, article_string):
         #replace wechat 'data-src' attributes to fix images
         article_string = re.sub("data-src=", "src=", article_string)
@@ -132,6 +140,32 @@ class Parser():
 
         #remove remaining (javascript:void;) like text
         article_string = re.sub("\(javascript:.*[\r?\n|\r]", "", article_string)
+
+        #we can actually remove all things before second img (firstimge is empty, second img is the banner)
+        #index = article_string.index("<img")
+        index = self.find_nth(article_string, "<img", 2)
+        article_string = article_string[index:]
+
+        #remove all things after **【近期文章】
+        index = article_string.index("**【近期文章】")
+        article_string = article_string[:index]
+        
+        #insert paragraph tags
+        article_list = article_string.strip().split("\n")
+        article_list = [string for string in article_list if string != '']
+        #can only insert around text, not img info
+        for i in reversed(range(len(article_list))):
+            valid_par = True
+            for substring in ['<img', 'src=', '/>']:
+                if substring in article_list[i]:
+                    valid_par = False
+                    break
+            if valid_par:
+                #insert </p> after and <p> before
+                article_list.insert(i+1, "</p>")
+                article_list.insert(i, "<p>")
+        article_string = "\n".join(article_list)
+
         return article_string
 
         #get the urls from already cleaned string
@@ -139,12 +173,15 @@ class Parser():
         #some assumptions go into how the string is formatted
         pattern = re.compile("src='.*[\r?\n|\r]*\/>")
         links = re.findall(pattern, article_string)
+        #obtain the src url from the html tag
         for i in range(len(links)):
             #there should only be two
             quotes = [i for i, letter in enumerate(links[i]) if letter == "'"]
             links[i] = links[i][quotes[0]+1:quotes[1]]
-            print(links[i] == "")
-        links = list(filter(lambda x: not x.strip() == '', links)) #idk why this doesn work
+
+        links = list(filter(lambda x: not x.strip() == '', links)) #appears to work now, removes empty links
+        #make sure links are well-formed
+        
         return links
 
 

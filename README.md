@@ -47,3 +47,8 @@ The first issue is authenticating to the server, and the free version only allow
 The solution to this was including the access token in the url as a query string, as it appears there are some bugs on the plugin side.
 
 The REST API documentation is also not very good. The exact format of certain parameters is not clearly defined. TODO.....
+
+
+requirements:
+status needs to be of type string with value: publish, future, draft, pending, private, refunded, failed, revoked, cancelled, abandoned, processing, preapproval.
+date needs to be of type string with format: "2020-06-03T22:20:23"
