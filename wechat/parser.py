@@ -180,8 +180,27 @@ class Parser():
             links[i] = links[i][quotes[0]+1:quotes[1]]
 
         links = list(filter(lambda x: not x.strip() == '', links)) #appears to work now, removes empty links
-        #make sure links are well-formed
+        #todo-make sure links are well-formed
         
         return links
 
+    #find the date located in the full/initial article string
+    def find_date(self, article_string):
+        pattern = re.compile("20(\d){2}-(\d){1,2}-(\d){1,2}")
+        res = re.search(pattern, article_string)
+        if res:
+            return res.group(0).split('-')
+        print("date not found in file")
+        return None
+    
+    def get_excerpt(self, article_string):
+        length = 250
+        res = []
+        for i in range(len(article_string)):
+            if length == 0:
+                break
+            if  u'\u4e00' < article_string[i] < u'\u9fff':
+                res.append(article_string[i])
+                length -= 1
+        return "".join(res) 
 

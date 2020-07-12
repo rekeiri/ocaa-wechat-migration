@@ -39,7 +39,7 @@ def wechat():
     articles = [f for f in os.listdir(dirname) if os.path.isfile(os.path.join(dirname, f))]
 
     #for test, only take first article
-    articles = articles[0:1]
+    articles = articles[0:2]
 
     for article_name in articles:
         #filter if article is already in the db
@@ -50,6 +50,13 @@ def wechat():
         f = open(article_path, "r", encoding = "utf-8")
         article_string = f.read()
         f.close()
+        
+        article_date = parser.find_date(article_string)
+        if not article_date:
+            article_date = []
+            for prompt in ["input year", "input month", "input day"]:
+                user_input = input(prompt)
+                article_date.append(user_input)
 
         #start scraping the text/images
         article_string = parser.get_article_html_and_images(article_string)
@@ -91,7 +98,16 @@ def wechat():
             #replace old image url with new wordpress url in article_string
             if new_link == '':
                 new_link = db.get_new_image_link(conn, img_link)
-            re.sub(img_link, new_link, article_string)
+
+            img_index = article_string.find(img_link)
+            #print(img_index)
+            if img_index <0:
+                print('error occurred, image not found')
+            article_string = article_string.replace(img_link, new_link)
+
+            #pattern = re.compile(img_link)
+            #new_article_string = re.sub(img_link, new_link, article_string)
+            #print(new_article_string == article_string)
                 
 
 
@@ -101,13 +117,15 @@ def wechat():
         f.write(article_string)
         #upload file to wordpress
         category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
-        my_date = wp_auth_lib.create_date(2020, 7, 2, 0, 0, 0) # should be "2020-05-28T00:00:00"
-        print(my_date)
+        my_date = wp_auth_lib.create_date(int(article_date[0]), int(article_date[1]), int(article_date[2]), 0, 0, 0) # should be "2020-05-28T00:00:00"
         #remove.html from wordpress title
         index = article_name.find(".html")
         wp_title = article_name[:index]
-        #should also create a new url because the automated url is really long due to the chinese characters in unicode
-        wp_auth_lib.create_post(my_date , "publish", wp_title, article_string, [category_id])
+        article_excerpt = parser.get_excerpt(article_string)
+
+        #todo-should also create a new url because the automated url is really long due to the chinese characters in unicode
+
+        wp_auth_lib.create_post(my_date , "publish", wp_title, article_string, [category_id], article_excerpt)
 
         #if success, add title to db
         #else, return error

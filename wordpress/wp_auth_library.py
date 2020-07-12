@@ -84,13 +84,12 @@ class WPAuthLibrary():
         return r.json()
 
 
-    def create_post(self, date, status, title, content, categories):
+    def create_post(self, date, status, title, content, categories, excerpt = None):
         url = self.base_url+"/wp-json/wp/v2/posts"
         url += "?access_token="+self.access_token 
-        data = {"date": date, "status": status, "title": title, "content": content, "categories": categories}
+        data = {"date": date, "status": status, "title": title, "content": content, "categories": categories, "excerpt":excerpt}
         r = self.session.post(url, data = data)
         print(r.status_code)
-        print(r.text)
 
     #Date format requirement:
     #"date":"2020-06-03T22:20:23", otherwise we can use None
@@ -112,6 +111,11 @@ class WPAuthLibrary():
         r = self.session.post(url, data = data, files = files)
         return r
 
+    def delete_pic(self, pic_id):
+        url = self.base_url + "/wp-json/wp/v2/media/{pic_id}"
+        url += "?access_token="+self.access_token
+        data = {"force":True}#bypass trash and directly delete image
+        r = self.session.delete(url, data = data)
 
 
 
