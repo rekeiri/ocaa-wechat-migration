@@ -82,7 +82,13 @@ class WPAuthLibrary():
         url += "?access_token="+self.access_token
         r = self.session.get(url)
         return r.json()
-
+    
+    def get_images(self, page, search_string):
+        url = self.base_url + "/wp-json/wp/v2/media"
+        url += "?access_token="+self.access_token
+        data = {"page": page, "per_page" : "20", "search": search_string}
+        r = self.session.get(url, data = data)
+        return r.json()
 
     def create_post(self, date, status, title, content, categories, excerpt = None):
         url = self.base_url+"/wp-json/wp/v2/posts"

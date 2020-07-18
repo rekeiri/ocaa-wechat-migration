@@ -79,8 +79,7 @@ def get_new_image_link(conn, orig_url):
     res = execute_query(conn, query, tup)
     if res[0][0] is not None:
         return res[0][0]
-    print("image url not found")
-    return -1
+    raise ValueError(f"the image url: {orig_url} was not found")
 
 def insert_image(conn, orig_url, new_url, image_id):
     tup = (orig_url, new_url, image_id)

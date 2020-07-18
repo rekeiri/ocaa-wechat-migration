@@ -4,3 +4,5 @@ __pycache__
 /img
 /wechat/articles
 /wechat/modified_articles
+.vscode
+imageoutput.txt
