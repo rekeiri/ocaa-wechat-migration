@@ -137,21 +137,41 @@ def upload_article(article_name, article_string, article_date):
 
 
 def reset_progress():
-    #get all images.
+    #delete_images()
+    delete_posts()
+
+def delete_images():
     image_ids_to_delete = set()
     pattern = re.compile("wx_\d*")
-    images = wp_auth_lib.get_images(2, "wx_")
-    for image in images:
-        print(image["id"])
-        print(image["title"]["rendered"])
-        if pattern.match(image["title"]["rendered"]):
-            image_ids_to_delete.add(image["id"])
-    with open("imageoutput.txt", "w+") as f:
-        f.write(json.dumps(images))
-    #if they match pattern wx_#, delete them
-    #get all posts of category apapa ohio posts
-    #delete them
+    page = 1
+    while True:
+        images = wp_auth_lib.get_images(page, "wx_")
+        try:
+            for image in images:
+                #if pattern.match(image["title"]["rendered"]):#shouldn't really need this since no one else will use this naming convention
+                #search also checks url. so if i changed title of pic so it doesn't match it won't come up if i use the regex
+                image_ids_to_delete.add(image["id"])
+            page += 1
+        except:
+            #will get a TypeError if the json response doesn't match what we expect
+            break
+    for image_id in image_ids_to_delete:
+        wp_auth_lib.delete_image(image_id)
 
+def delete_posts():
+    post_ids_to_delete = set()
+    page = 1
+    while True:
+        posts = wp_auth_lib.get_posts(page, category_id)
+        try:
+            for post in posts:
+                post_ids_to_delete.add(post["id"])
+            page += 1
+        except:
+            break
+    for post_id in post_ids_to_delete:
+        wp_auth_lib.delete_post(post_id)
+    
 
 
 def wordpress():

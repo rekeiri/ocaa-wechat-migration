@@ -77,17 +77,24 @@ class WPAuthLibrary():
                 category_id = int(category["id"])
                 return category_id
 
-    def get_posts(self):
+    #also doesn't work with dictionary of arguments
+    def get_posts(self, page, category):
         url = self.base_url+"/wp-json/wp/v2/posts"
         url += "?access_token="+self.access_token
+        url += f"&page={page}"
+        url += f"&per_page=100"
+        url += f"&categories={category}"
         r = self.session.get(url)
         return r.json()
     
+    #for some reason, this endpoint doesn't work with attaching a dictionary of arguments
     def get_images(self, page, search_string):
         url = self.base_url + "/wp-json/wp/v2/media"
         url += "?access_token="+self.access_token
-        data = {"page": page, "per_page" : "20", "search": search_string}
-        r = self.session.get(url, data = data)
+        url += f"&page={page}"
+        url += f"&search={search_string}"
+        url += f"&per_page=100"
+        r = self.session.get(url)
         return r.json()
 
     def create_post(self, date, status, title, content, categories, excerpt = None):
@@ -117,8 +124,14 @@ class WPAuthLibrary():
         r = self.session.post(url, data = data, files = files)
         return r
 
-    def delete_pic(self, pic_id):
-        url = self.base_url + "/wp-json/wp/v2/media/{pic_id}"
+    def delete_image(self, image_id):
+        url = self.base_url + f"/wp-json/wp/v2/media/{image_id}"
+        url += "?access_token="+self.access_token
+        data = {"force":True}#bypass trash and directly delete image
+        r = self.session.delete(url, data = data)
+
+    def delete_post(self, post_id):
+        url = self.base_url + f"/wp-json/wp/v2/posts/{post_id}"
         url += "?access_token="+self.access_token
         data = {"force":True}#bypass trash and directly delete image
         r = self.session.delete(url, data = data)
