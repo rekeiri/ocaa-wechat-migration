@@ -23,7 +23,7 @@ file_path = os.path.dirname(__file__)
 article_dir = os.path.join(file_path, ".\\wechat\\articles")
 
 #initialize db
-db.delete_db(db_path)
+#db.delete_db(db_path)
 conn = db.create_connection(db_path)
 db.create_table(conn, db.image_table_sql)
 db.create_table(conn, db.article_table_sql)
@@ -37,12 +37,11 @@ category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
 
 
 def main():
-    #resetting everything in wp
-    reset_progress()
-    #print("running wechat code")
-    #import_articles()
-    #print("running wordpress code")
-    #wordpress()
+    #print("resetting everything in wp")
+    #reset_progress()
+    print("importing articles")
+    import_articles()
+    print("done")
     
 
 
@@ -54,11 +53,16 @@ def import_articles():
     articles = [f for f in os.listdir(article_dir) if os.path.isfile(os.path.join(article_dir, f))]
 
     #for test, only take first article
-    articles = articles[0:2]
+    #articles = articles[0:10]
 
     for article_name in articles:
         #todo-filter if article is already in the db
-        process_article(article_name)
+        if not db.article_exists(conn, article_name):
+            print(f"processing: {article_name}")
+            process_article(article_name)
+            db.insert_article(conn, article_name)
+        else:
+            print(f"skipped: {article_name}")
 
 
 def process_article(article_name):
@@ -95,7 +99,7 @@ def process_article(article_name):
         f.write(article_string)
     upload_article(article_name, article_string, article_date)
 
-    #if success, add title to db
+    #if success, add title to db - will need to do this in the future if we run it again so we prevent duplicate posts
     #else, return error
 
 #uploads image, rreturns new image link
@@ -104,15 +108,18 @@ def upload_image(img_link):
     image_id = db.get_new_image_id(conn)
     print(f"id is: {image_id}")
     #download image (with new name)
+    #can't directly uploaded image.content to wp rest api so need to do this, says can't accept for security reasons
     image_path = os.path.join(file_path, f'.\\img\\wx_{image_id}.jpg')
     with open(image_path,'wb+') as image_file:
         try:
             r = requests.get(img_link)
             image_file.write(r.content)
         except:
-            raise ex.ImageHttpError(f"something went wrong with getting image url: {img_link}")
+            print(f"something went wrong with getting image url: {img_link}")
+            #raise ex.ImageHttpError(f"something went wrong with getting image url: {img_link}")
     #upload file
     res = wp_auth_lib.upload_pic(image_path, None, "publish", f"wx_{image_id}") 
+    os.remove(image_path)
     #if successful, add to db
     #several possible links work: https://www.ohiocaa.org/?attachment_id=1707, https://www.ohiocaa.org/wx_1-4/, http://www.ohiocaa.org/wp-content/uploads/2020/07/test.jpg
     if res.status_code == 201:
@@ -120,7 +127,8 @@ def upload_image(img_link):
         new_link = res_content['guid']['rendered']
         db.insert_image(conn, img_link, new_link, image_id)
     else:
-        raise ex.ImageHttpError("something went wrong with uploading image to wordpress", res)
+        print("something went wrong with uploading image to wordpress")
+        #raise ex.ImageHttpError("something went wrong with uploading image to wordpress")
     return new_link
 
 
@@ -137,7 +145,9 @@ def upload_article(article_name, article_string, article_date):
 
 
 def reset_progress():
-    #delete_images()
+    print("deleting images")
+    delete_images()
+    print("deleting posts")
     delete_posts()
 
 def delete_images():
@@ -146,7 +156,11 @@ def delete_images():
     page = 1
     while True:
         images = wp_auth_lib.get_images(page, "wx_")
+        #print("printing get images response")
+        #print(json.dumps(images))
         try:
+            if len(images)==0:
+                break
             for image in images:
                 #if pattern.match(image["title"]["rendered"]):#shouldn't really need this since no one else will use this naming convention
                 #search also checks url. so if i changed title of pic so it doesn't match it won't come up if i use the regex
@@ -164,6 +178,8 @@ def delete_posts():
     while True:
         posts = wp_auth_lib.get_posts(page, category_id)
         try:
+            if len(posts)==0:
+                break
             for post in posts:
                 post_ids_to_delete.add(post["id"])
             page += 1
@@ -174,40 +190,7 @@ def delete_posts():
     
 
 
-def wordpress():
-    
-    #WordPress code
-    
-
-    '''
-    category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
-    my_date = wp_auth_lib.create_date(2020, 7, 2, 0, 0, 0) # should be "2020-05-28T00:00:00"
-    print(my_date)
-    wp_auth_lib.create_post(my_date , "publish", "test", "this is a test post", [category_id])
-
-    '''
-
-    '''
-    r = wp_auth_lib.get_posts()
-    print(len(r))
-    for post in r:
-        print()
-        print(post)
-    '''
-    '''
-    res = wp_auth_lib.upload_pic(os.path.join(file_path, r".\img\test.jpg"), 
-                            None,
-                            "publish",
-                            "wx_1")
-    '''
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
-    print("running main")
     main()

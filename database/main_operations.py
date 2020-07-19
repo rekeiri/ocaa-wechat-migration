@@ -55,9 +55,11 @@ def create_table(conn, create_table_sql):
     except Error as e:
         print(e)
 
-def article_exists(conn, url):
-    tup = (url,)
-    query = "SELECT 1 FROM"
+def article_exists(conn, title):
+    tup = (title,)
+    query = "SELECT 1 FROM uploaded_articles WHERE file_name  = ?"
+    res = execute_query(conn, query, tup)
+    return len(res) >0
 
 def image_exists(conn, url):
     tup = (url,)
@@ -86,6 +88,11 @@ def insert_image(conn, orig_url, new_url, image_id):
     query = "INSERT INTO image_urls VALUES(?, ?, ?)"
     update_values(conn, query, tup)
 
+def insert_article(conn, title):
+    tup = (title,)
+    query = "INSERT INTO uploaded_articles VALUES(?)"
+    update_values(conn, query, tup)
+
 #longer sql statements
 image_table_sql = """CREATE TABLE IF NOT EXISTS image_urls(
                     original_url text PRIMARY_KEY,
@@ -93,7 +100,6 @@ image_table_sql = """CREATE TABLE IF NOT EXISTS image_urls(
                     id integer NOT NULL
                     )"""
 
-article_table_sql = """CREATE TABLE IF NOT EXISTS article_links(
-                    original_url text PRIMARY_KEY,
-                    wordpress_url text
+article_table_sql = """CREATE TABLE IF NOT EXISTS uploaded_articles(
+                    file_name text PRIMARY_KEY
                     )"""

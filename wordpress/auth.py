@@ -43,7 +43,7 @@ def write_token_to_config(token):
             line = "access_token = "+ "\"" + token_str + "\""
             changed_token = True
         elif line.strip().startswith("expires_at ="):
-            line = "expires_at = "+ expire_time
+            line = "\nexpires_at = "+ expire_time
             changed_time = True
         sys.stdout.write(line)
     if not changed_token or not changed_time: #one of the fields didn't exist already in file
