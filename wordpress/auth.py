@@ -4,12 +4,14 @@ from requests.auth import HTTPBasicAuth
 import xml.etree.ElementTree as ET
 import os
 import sys
-import fileinput
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 authorization_base_url = "http://www.ohiocaa.org/oauth/authorize/"
 token_url = "http://www.ohiocaa.org/oauth/token/"
 redirect_uri = "/python-redirect/"
+
+dirname = os.path.dirname(__file__)
+config_file = os.path.join(dirname, 'config.xml')
 
 #returns oauth session after authenticating to server
 def get_oauth_session():
@@ -31,8 +33,6 @@ def write_token_to_config(token):
     token_str = token["access_token"]
     expire_time = str(token["expires_at"])
 
-    dirname = os.path.dirname(__file__)
-    config_file = os.path.join(dirname, 'config.xml')
     tree = ET.parse(config_file)
     config_root = tree.getroot()
 
@@ -45,31 +45,23 @@ def write_token_to_config(token):
     tree.write(config_file)
 
 def get_client_id():
-    dirname = os.path.dirname(__file__)
-    config_file = os.path.join(dirname, 'config.xml')
     tree = ET.parse(config_file)
     client_id = tree.find('clientid').text
     return client_id
 
 def get_client_secret():
-    dirname = os.path.dirname(__file__)
-    config_file = os.path.join(dirname, 'config.xml')
     tree = ET.parse(config_file)
     client_secret = tree.find('clientsecret').text
     return client_secret
 
 #returns token string
 def get_auth_token():
-    dirname = os.path.dirname(__file__)
-    config_file = os.path.join(dirname, 'config.xml')
     tree = ET.parse(config_file)
     token = tree.find('accesstoken').text
     return token
 
 #returns token expiration time (epoch)
 def get_token_expiration_time():
-    dirname = os.path.dirname(__file__)
-    config_file = os.path.join(dirname, 'config.xml')
     tree = ET.parse(config_file)
     expire_time = tree.find('expiresat').text
     #if string is not None, empty, or just whitespace

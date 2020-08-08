@@ -7,12 +7,13 @@ import fileinput
 import sys
 import html2text
 import re
+import wechat.auth as auth
 
 class Parser():
     def __init__(self, biz, uin, key):
-        self.biz = biz
-        self.uin = uin
-        self.key = key
+        self.biz = auth.get_biz()
+        self.uin = auth.get_uin()
+        self.key = auth.get_key()
         self.html2text_parser = html2text.HTML2Text()
         self.html2text_parser.images_as_html = True
 
@@ -71,7 +72,7 @@ class Parser():
                 print("Incorrect JSON has been returned, key is likely outdated/wrong")
                 self.key = input("Please enter new key value:\n")
                 param['key'] = self.key
-                write_key_to_config()
+                auth.write_key(self.key)
             except Exception as e:
                 print("An unexpected error occurred:")
                 print(e)
@@ -108,20 +109,6 @@ class Parser():
             print('all completed')
             return False
 
-
-    def write_key_to_config(self):
-        dirname = os.path.dirname(__file__)
-        filename = os.path.join(dirname, "config.py")
-        changed_key = False
-        for line in fileinput.input(filename, inplace = True):
-            if line.strip().startswith("key ="):
-                line = "key = " + "\"" + self.key + "\""
-                changed_key = True
-            sys.stdout.write(line)
-        if not changed_key:
-            f = open(filename, "a")
-            f.write("\nkey = "+ "\"" + self.key + "\"\n")
-            f.close()
 
     #a helper method for get_article_html_and_images
     def find_nth(self, string, substring, n):
