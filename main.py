@@ -6,9 +6,6 @@ import exceptions as ex
 import json
 
 import database.main_operations as db
-from wechat.config import biz as w_biz
-from wechat.config import key as w_key
-from wechat.config import uin as w_uin
 from wechat.parser import Parser
 from wordpress.wp_auth_library import WPAuthLibrary
 
@@ -18,15 +15,16 @@ db_path = r"C:\Users\Eric Fu\workspace\ocaa-wechat-migration\database\my_databas
 file_path = os.path.dirname(__file__)
 article_dir = os.path.join(file_path, ".\\wechat\\articles")
 
+
 #initialize db
-#db.delete_db(db_path)
+db.delete_db(db_path)
 conn = db.create_connection(db_path)
 db.create_table(conn, db.image_table_sql)
 db.create_table(conn, db.article_table_sql)
 
 #constant objects
 wp_auth_lib = WPAuthLibrary()
-parser = Parser(w_biz, w_uin, w_key)
+parser = Parser()
 
 #other constants
 category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
@@ -34,8 +32,8 @@ category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
 def main():
     print("resetting everything in wp")
     reset_progress()
-    #print("importing articles")
-    #import_articles()
+    print("importing articles")
+    import_articles()
     print("done")
     
 
@@ -47,7 +45,7 @@ def import_articles():
     #grab article(s) names
     articles = [f for f in os.listdir(article_dir) if os.path.isfile(os.path.join(article_dir, f))]
 
-    #for test, only take first article
+    #for testing, only take a few articles
     #articles = articles[0:10]
 
     for article_name in articles:
@@ -69,11 +67,11 @@ def process_article(article_name):
     
     #get article date (in js) before we remove it from article
     article_date = parser.find_date(article_string)
+
+    #no date means it is either empty file or article was censored
     if not article_date:
-        article_date = []
-        for prompt in ["input year", "input month", "input day"]:
-            user_input = input(prompt)
-            article_date.append(user_input)
+        write_to_log(f'Error: the article {article_name} did not have a date')
+        return
 
     #process text and image links
     article_string = parser.get_article_html_and_images(article_string)
@@ -81,19 +79,17 @@ def process_article(article_name):
 
     #post images and add to db
     for img_link in img_links:
-        #this url is used for wechat specific things, not media. Is not well formed, and is usually cut out of page when we process it
-        #sometimes it gets let through though.
+        #this url is used for wechat specific things, not media. Is not well formed, and is usually cut out of page when we process it, sometimes gets through
         if img_link.strip().startswith("//res.wx.qq"):
             continue
         new_link = ''
         if not db.image_exists(conn, img_link):
             new_link = upload_image(img_link)
-        #replace old image url with new wordpress url in article_string
-        if new_link == '':
-            try:
-                new_link = db.get_new_image_link(conn, img_link)
-            except:
-                print('new link not found')
+            if new_link == '':
+                write_to_log(f"Error: {img_link} in article {article_name} was not uploaded correctly")
+        #link exists in db
+        else: 
+            new_link = db.get_new_image_link(conn, img_link)
         img_index = article_string.find(img_link)
         article_string = article_string.replace(img_link, new_link)
     #write/upload new formatted file
@@ -101,25 +97,21 @@ def process_article(article_name):
         f.write(article_string)
     upload_article(article_name, article_string, article_date)
 
-    #if success, add title to db - will need to do this in the future if we run it again so we prevent duplicate posts
-    #else, return error
-
-#uploads image, rreturns new image link
+#uploads image, returns new image link
 def upload_image(img_link):
     #get next id #
     new_link = ""
     image_id = db.get_new_image_id(conn)
     print(f"id is: {image_id}")
-    #download image (with new name)
-    #can't directly uploaded image.content to wp rest api so need to do this, says can't accept for security reasons
+    #download image (with new name), can't directly upload image.content to wp rest api so need to do this, says can't accept for security reasons
     image_path = os.path.join(file_path, f'.\\img\\wx_{image_id}.jpg')
     with open(image_path,'wb+') as image_file:
         try:
             r = requests.get(img_link)
             image_file.write(r.content)
         except:
-            print(f"something went wrong with getting image url: {img_link}")
-            #raise ex.ImageHttpError(f"something went wrong with getting image url: {img_link}")
+            write_to_log(f"Error: something went wrong with getting image url: {img_link}")
+            return new_link #will be empty and also trigger other log 
     #upload file
     res = wp_auth_lib.upload_pic(image_path, None, "publish", f"wx_{image_id}") 
     os.remove(image_path)
@@ -130,10 +122,7 @@ def upload_image(img_link):
         new_link = res_content['guid']['rendered']
         db.insert_image(conn, img_link, new_link, image_id)
     else:
-        print("something went wrong with uploading image to wordpress")
-        print(res.status_code)
-        print(res.text)
-        #raise ex.ImageHttpError("something went wrong with uploading image to wordpress")
+        write_to_log(f"Error: uploading {img_link} to wordpress, status code: {res.status_code}, text: {res.text}")
     return new_link
 
 
@@ -142,7 +131,8 @@ def upload_article(article_name, article_string, article_date):
     #remove.html from wordpress title
     index = article_name.find(".html")
     wp_title = article_name[:index]
-    article_excerpt = parser.get_excerpt(article_string)
+    #article_excerpt = parser.get_excerpt(article_string)
+    article_excerpt = " " #want an empty excerpt, need whitespace not empty string
 
     #todo-should also create a new url because the automated url is really long due to the chinese characters in unicode
 
@@ -192,9 +182,11 @@ def delete_posts():
             break
     for post_id in post_ids_to_delete:
         wp_auth_lib.delete_post(post_id)
-    
 
 
+def write_to_log(string):
+    with open('logs/log.txt', 'a', encoding = "utf-8") as f:
+        f.write(string+'\n')
 
 
 if __name__ == '__main__':

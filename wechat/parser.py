@@ -6,11 +6,12 @@ import os
 import fileinput
 import sys
 import html2text
+import markdown2
 import re
 import wechat.auth as auth
 
 class Parser():
-    def __init__(self, biz, uin, key):
+    def __init__(self):
         self.biz = auth.get_biz()
         self.uin = auth.get_uin()
         self.key = auth.get_key()
@@ -140,7 +141,9 @@ class Parser():
             article_string = article_string[:index]
         except ValueError:
             print("this article doesn't contain substring **【近期文章】 ")
-        
+
+        article_string = markdown2.markdown(article_string)
+        '''
         #insert paragraph tags
         article_list = article_string.strip().split("\n")
         article_list = [string for string in article_list if string != '']
@@ -156,7 +159,7 @@ class Parser():
                 article_list.insert(i+1, "</p>")
                 article_list.insert(i, "<p>")
         article_string = "\n".join(article_list)
-
+        '''
         return article_string
 
         #get the urls from already cleaned string

@@ -6,3 +6,4 @@ __pycache__
 /wechat/modified_articles
 .vscode
 imageoutput.txt
+/logs/
