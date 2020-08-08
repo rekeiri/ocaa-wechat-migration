@@ -12,10 +12,6 @@ from wechat.config import uin as w_uin
 from wechat.parser import Parser
 from wordpress.wp_auth_library import WPAuthLibrary
 
-try:
-    from wordpress.config import access_token, expires_at
-except:
-    access_token, expires_at = None, None
 
 #constant file paths
 db_path = r"C:\Users\Eric Fu\workspace\ocaa-wechat-migration\database\my_database.db"
@@ -29,18 +25,17 @@ db.create_table(conn, db.image_table_sql)
 db.create_table(conn, db.article_table_sql)
 
 #constant objects
-wp_auth_lib = WPAuthLibrary(access_token, expires_at)
+wp_auth_lib = WPAuthLibrary()
 parser = Parser(w_biz, w_uin, w_key)
 
 #other constants
 category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
 
-
 def main():
-    #print("resetting everything in wp")
-    #reset_progress()
-    print("importing articles")
-    import_articles()
+    print("resetting everything in wp")
+    reset_progress()
+    #print("importing articles")
+    #import_articles()
     print("done")
     
 
@@ -86,12 +81,19 @@ def process_article(article_name):
 
     #post images and add to db
     for img_link in img_links:
+        #this url is used for wechat specific things, not media. Is not well formed, and is usually cut out of page when we process it
+        #sometimes it gets let through though.
+        if img_link.strip().startswith("//res.wx.qq"):
+            continue
         new_link = ''
         if not db.image_exists(conn, img_link):
             new_link = upload_image(img_link)
         #replace old image url with new wordpress url in article_string
         if new_link == '':
-            new_link = db.get_new_image_link(conn, img_link)
+            try:
+                new_link = db.get_new_image_link(conn, img_link)
+            except:
+                print('new link not found')
         img_index = article_string.find(img_link)
         article_string = article_string.replace(img_link, new_link)
     #write/upload new formatted file
@@ -105,6 +107,7 @@ def process_article(article_name):
 #uploads image, rreturns new image link
 def upload_image(img_link):
     #get next id #
+    new_link = ""
     image_id = db.get_new_image_id(conn)
     print(f"id is: {image_id}")
     #download image (with new name)
@@ -128,6 +131,8 @@ def upload_image(img_link):
         db.insert_image(conn, img_link, new_link, image_id)
     else:
         print("something went wrong with uploading image to wordpress")
+        print(res.status_code)
+        print(res.text)
         #raise ex.ImageHttpError("something went wrong with uploading image to wordpress")
     return new_link
 

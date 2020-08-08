@@ -147,8 +147,12 @@ class Parser():
         article_string = article_string[index:]
 
         #remove all things after **【近期文章】
-        index = article_string.index("**【近期文章】")
-        article_string = article_string[:index]
+        #some don't have so just keep the whole thing, ex: S.386又卷土重来，现在我们该怎么办？.html
+        try:
+            index = article_string.index("**【近期文章】")
+            article_string = article_string[:index]
+        except ValueError:
+            print("this article doesn't contain substring **【近期文章】 ")
         
         #insert paragraph tags
         article_list = article_string.strip().split("\n")
@@ -196,11 +200,49 @@ class Parser():
     def get_excerpt(self, article_string):
         length = 250
         res = []
-        for i in range(len(article_string)):
-            if length == 0:
+        inside_paragraph = False
+        i = 0
+        punctuation_pattern = re.compile("[.!?\\-。:：，,]")
+        print('getting excerpt')
+        while i < len(article_string): 
+            if length <= 0:
                 break
-            if  u'\u4e00' < article_string[i] < u'\u9fff':
-                res.append(article_string[i])
-                length -= 1
-        return "".join(res) 
+            if article_string[i:i+3] == '<p>':
+                inside_paragraph = True
+                i += 3
+            elif article_string[i:i+4] == '</p>':
+                inside_paragraph = False
+                i += 4
+            elif inside_paragraph:
+                #if we encounter new line character
+                if article_string[i:i+2] == '\n':
+                    i += 2
+                #if is a chinese character
+                elif u'\u4e00' < article_string[i] < u'\u9fff':
+                    res.append(article_string[i])
+                    length -= 1
+                    i+= 1
+                #if encounter english/number
+                elif article_string[i].isalnum():
+                    word_length = 1
+                    while article_string[i+word_length].isalnum():
+                        word_length += 1
+                    res.append(article_string[i:i+word_length])
+                    length -= word_length
+                    i += word_length
+                #encounter punctuation
+                elif punctuation_pattern.match(article_string[i]):
+                    res.append(article_string[i])
+                    length -= 1
+                    i += 1
+                else:
+                    i+= 1
+            else:#outside paragraph
+                i+= 1
+        #add space before each english word
+        for i in range(len(res)):
+            if res[i].isalnum():
+                res.insert(i, " ")
+        return "".join(res) + "..."
+
 

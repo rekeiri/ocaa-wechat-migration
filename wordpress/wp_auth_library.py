@@ -1,4 +1,4 @@
-from .auth import get_oauth_session
+import wordpress.auth as auth
 import time
 import os
 import requests
@@ -14,55 +14,30 @@ authorizing requires logging into wordpress site
 
 
 class WPAuthLibrary():
-    def __init__(self, access_token = None, token_expiration_time = None):
+    def __init__(self):
         self.base_url = "https://ohiocaa.org"
-        self.access_token = access_token
-        self.token_expiration_time = token_expiration_time
+        self.access_token = auth.get_auth_token()
+        self.token_expiration_time = auth.get_token_expiration_time()
         if self.is_access_token_valid():
             self.session = requests.Session()#not sure if this code is correct
-            headers = {"Authorization": "Bearer: " + access_token}
+            headers = {"Authorization": "Bearer: " + self.access_token}
             self.session.headers.update(headers)
         else:
             self.update_token()
 
     def update_token(self):
-        self.session = get_oauth_session() #includes writing token to config.py
+        self.session = auth.get_oauth_session() #includes writing token to config.py
         self.access_token = self.session.access_token
 
     def is_access_token_valid(self):
         access_token_exists = False
-        expiration_time_exists = False
         expiration_time_valid = False
+        #if access token is not empty string and it hasn't expired yet
         if self.access_token:
             access_token_exists = True
-        if self.token_expiration_time:
-            expiration_time_exists = True
-        if expiration_time_exists and time.time()<self.token_expiration_time:
+        if time.time()<self.token_expiration_time:
                 expiration_time_valid = True
-        '''
-        dirname = os.path.dirname(__file__)
-        filename = os.path.join(dirname, "config.py")
-        f = open(filename, "r") 
-        for line in f.readlines():
-            if line.startswith("access_token ="):
-                access_token_exists = True
-            elif line.startswith("expires_at = "):
-                expiration_time_exists = True
-                expiration_time = line.strip()
-                expiration_time = float(expiration_time.split()[-1])
-        f.close()
-        '''
-        return access_token_exists and expiration_time_exists and expiration_time_valid
-
-    def get_access_token(self):
-        dirname = os.path.dirname(__file__)
-        filename = os.path.join(dirname, "config.py")
-        f = open(filename, "r") 
-        for line in f.readlines():
-            if line.startswith("access_token ="):
-                access_token = line.strip().split()[-1]
-                #because we didn't import it but read it directly, it reads it as a string instead, so need to strip quotes
-                self.access_token = access_token.strip('"')
+        return access_token_exists and expiration_time_valid
 
     #category is a list of integers, likely of the id number that belongs to each category
     def get_categories(self):
