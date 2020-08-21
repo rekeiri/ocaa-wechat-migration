@@ -19,8 +19,9 @@ class Parser():
         self.html2text_parser.images_as_html = True
 
     def download_all_html(self):
-        index = 1
+        index = 0
         while(self.download_html(index)):
+            time.sleep(5)#was getting a "too many requests, try again later" error
             index += 1
 
     def download_html(self, index):
@@ -69,8 +70,12 @@ class Parser():
                 data_list = json.loads(general_msg_list)['list']
 
                 print(data_list)
+                break #if we get here, that means the data is good, so we move on
             except KeyError:
                 print("Incorrect JSON has been returned, key is likely outdated/wrong")
+                #this is wrong key json: {'base_resp': {'ret': -3, 'errmsg': 'no session', 'cookie_count': 0, 'csp_nonce': 183473774}, 'ret': -3, 'errmsg': 'no session', 'cookie_count': 0}
+                #This json is too many attempts, try again later: {'ret': -6, 'errmsg': 'unknown error', 'home_page_list': []}
+                print(response_dict)
                 self.key = input("Please enter new key value:\n")
                 param['key'] = self.key
                 auth.write_key(self.key)
@@ -79,6 +84,7 @@ class Parser():
                 print(e)
                 return False
 
+        #todo: once we hit a file we already have locally, we just return false? This would assume that we maintain a list of all files and never delete
         for data in data_list:
             try:
                 datetime = data['comm_msg_info']['datetime']

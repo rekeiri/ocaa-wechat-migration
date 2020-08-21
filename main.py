@@ -4,6 +4,7 @@ import re
 import requests
 import exceptions as ex
 import json
+from datetime import datetime
 
 import database.main_operations as db
 from wechat.parser import Parser
@@ -17,7 +18,7 @@ article_dir = os.path.join(file_path, ".\\wechat\\articles")
 
 
 #initialize db
-db.delete_db(db_path)
+#db.delete_db(db_path)
 conn = db.create_connection(db_path)
 db.create_table(conn, db.image_table_sql)
 db.create_table(conn, db.article_table_sql)
@@ -27,11 +28,18 @@ wp_auth_lib = WPAuthLibrary()
 parser = Parser()
 
 #other constants
-category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
+#category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
+category_id = wp_auth_lib.get_category_id("俄州亚太联盟公众号文章列表")
 
 def main():
-    print("resetting everything in wp")
-    reset_progress()
+    write_to_log(f"Started running program at {datetime.now()}")
+
+    #parser.download_all_html()
+    #input("Done downloading wechat articles, press a key to continue")
+
+    #print("resetting everything in wp")
+    #reset_progress()
+
     print("importing articles")
     import_articles()
     print("done")
@@ -39,9 +47,7 @@ def main():
 
 
 def import_articles():
-    #grab all wechat articles, download them to folder
-    #parser.download_all_html()
-
+    
     #grab article(s) names
     articles = [f for f in os.listdir(article_dir) if os.path.isfile(os.path.join(article_dir, f))]
 
