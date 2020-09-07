@@ -30,6 +30,10 @@ parser = Parser()
 #other constants
 #category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
 category_id = wp_auth_lib.get_category_id("俄州亚太联盟公众号文章列表")
+categories = wp_auth_lib.get_categories()
+for category in categories:
+    print(category["name"])
+input("press a key to continue")
 
 def main():
     write_to_log(f"Started running program at {datetime.now()}")
@@ -38,10 +42,10 @@ def main():
     #input("Done downloading wechat articles, press a key to continue")
 
     #print("resetting everything in wp")
-    #reset_progress()
+    reset_progress()
 
     print("importing articles")
-    import_articles()
+    #import_articles()
     print("done")
     
 
@@ -170,6 +174,8 @@ def delete_images():
         except:
             #will get a TypeError if the json response doesn't match what we expect
             break
+    print(len(image_ids_to_delete))
+    input()
     for image_id in image_ids_to_delete:
         wp_auth_lib.delete_image(image_id)
 

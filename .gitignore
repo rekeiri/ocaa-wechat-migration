@@ -7,3 +7,5 @@ __pycache__
 .vscode
 imageoutput.txt
 /logs/
+/wordpress/credentials.py
+/wechat/sniffer.py
