@@ -30,9 +30,7 @@ parser = Parser()
 #other constants
 #category_id = wp_auth_lib.get_category_id("APAPA Ohio Posts")
 category_id = wp_auth_lib.get_category_id("俄州亚太联盟公众号文章列表")
-categories = wp_auth_lib.get_categories()
-for category in categories:
-    print(category["name"])
+print(category_id)
 input("press a key to continue")
 
 def main():

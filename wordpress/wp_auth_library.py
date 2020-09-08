@@ -43,6 +43,7 @@ class WPAuthLibrary():
     def get_categories(self):
         url = self.base_url + "/wp-json/wp/v2/categories"
         url += "?access_token="+self.access_token
+        url += '&per_page=100'
         r = self.session.get(url)
         return r.json()
 
